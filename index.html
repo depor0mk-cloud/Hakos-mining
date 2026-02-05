@@ -87,7 +87,7 @@
 
     <div id="click-screen" class="screen">
         <div class="card">
-            <h2 id="target-txt" style="margin: 0; font-weight: 900;">ЦЕЛЬ: 10 ТАПОВ</h2>
+            <h2 id="target-txt" style="margin: 0; font-weight: 900;">ЦЕЛЬ: 0 / 10</h2>
             <div class="progress-box"><div id="bar" class="bar"></div></div>
             <button class="btn-3d" style="padding: 60px; font-size: 32px;" onclick="tap()">TAP</button>
         </div>
@@ -112,7 +112,7 @@
     tg.expand(); tg.ready();
 
     const _S = {
-        k: ['h_v5', 'p_v5', 's_v5', 'b_v5', 'u_v5', 'v_v5'],
+        k: ['h_v6', 'p_v6', 's_v6', 'b_v6', 'u_v6', 'v_v6'],
         a: ["L9Ch0J3QrNCi0KzQkdCQ0J0=", "L9Ch0J3QrNCi0KzQnNCj0KI=", "L9Ch0J3QrNCi0KzQndCQNDg="],
         p1: "0KfQm9CV0J3QntCf0J7QotCQ0J0=",
         p2: "TUFOREE="
@@ -140,25 +140,31 @@
     function sync() {
         document.getElementById('hk-num').innerText = hk.toFixed(8);
         document.getElementById('ps-num').innerText = (hp/3600).toFixed(5) + " HK/s";
+        // Обновление интерфейса кликера
+        let t = stp[si] || (100 + (si-6)*20);
+        document.getElementById('target-txt').innerText = "ЦЕЛЬ: " + cc + " / " + t;
+        document.getElementById('bar').style.width = (cc/t*100) + "%";
     }
 
-    // ЛОГИКА ОФФЛАЙН ДОХОДА (1.5 часа макс)
     (function checkOffline() {
         let now = Date.now();
-        let diff = Math.floor((now - lv) / 1000); // секунд прошло
+        let diff = Math.floor((now - lv) / 1000);
         if (diff > 60) {
-            let offlineSeconds = Math.min(diff, 5400); // 5400 сек = 1.5 часа
+            let offlineSeconds = Math.min(diff, 5400); 
             let earned = (hp / 3600) * offlineSeconds;
             if (earned > 0) {
                 hk += earned;
-                tg.showAlert("Пока тебя не было, майнеры добыли: " + earned.toFixed(5) + " HKos (за " + Math.round(offlineSeconds/60) + " мин)");
+                tg.showAlert("Оффлайн доход: +" + earned.toFixed(5) + " HKos");
                 save();
             }
         }
     })();
 
     function openM(id, txt) {
-        if(txt) document.getElementById('promo-val-text').innerText = txt;
+        if(txt) {
+            if(id === 'm-reward') document.getElementById('reward-amt').innerText = txt;
+            if(id === 'm-promo') document.getElementById('promo-val-text').innerText = txt;
+        }
         const m = document.getElementById(id); m.style.display = 'flex';
         setTimeout(() => m.classList.add('show'), 10);
         tg.HapticFeedback.notificationOccurred('success');
@@ -174,10 +180,16 @@
         const n = Date.now(); ct.push(n);
         ct = ct.filter(t => n - t < 1000);
         if(ct.length > 13) { ib = true; save(); location.reload(); return; }
+        
         cc++;
         let t = stp[si] || (100 + (si-6)*20);
+        
+        // Визуальное обновление при каждом клике
         document.getElementById('bar').style.width = (cc/t*100) + "%";
+        document.getElementById('target-txt').innerText = "ЦЕЛЬ: " + cc + " / " + t;
+        
         tg.HapticFeedback.impactOccurred('medium');
+
         if(cc >= t) {
             let r = Math.random() < 0.1 ? 0.015 : 0.003;
             hk += r; cc = 0; si++;
@@ -218,6 +230,7 @@
         document.getElementById(s + '-screen').classList.add('active');
         document.getElementById('n-' + s).classList.add('active');
         tg.HapticFeedback.selectionChanged();
+        sync(); // Синхронизируем при смене экрана
     }
 
     // Матрица
@@ -235,7 +248,6 @@
     }
     setInterval(draw, 50);
 
-    // Авто-доход и Авто-сохранение (каждые 3 сек)
     setInterval(() => { hk += hp/3600/20; sync(); }, 50);
     setInterval(save, 3000);
 
@@ -245,7 +257,6 @@
     }
 
     if(ib) document.getElementById('ban-screen').style.display = 'flex';
-    document.getElementById('target-txt').innerText = "ЦЕЛЬ: " + (stp[si] || (100 + (si-6)*20)) + " ТАПОВ";
     sync();
 </script>
 </body>
