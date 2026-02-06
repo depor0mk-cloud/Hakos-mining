@@ -3,63 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hakos Mining v30.6</title>
+    <title>Hakos Mining v30.7</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000; --neon: #00ff88; --glass: rgba(255, 255, 255, 0.07); --border: rgba(255, 255, 255, 0.1); }
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; outline: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; outline: none; transition: all 0.2s ease; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; height: 100vh; }
-        
         canvas { position: fixed; inset: 0; z-index: 1; opacity: 0.12; pointer-events: none; }
         .version { position: fixed; bottom: 8px; right: 12px; font-size: 8px; color: rgba(255,255,255,0.1); z-index: 10001; }
         
-        .app { position: relative; z-index: 10; display: none; flex-direction: column; height: 100vh; padding: 10px 20px 110px; animation: fadeIn 0.6s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Экраны */
+        #start-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+        .app { position: relative; z-index: 10; display: none; flex-direction: column; height: 100vh; padding: 10px 20px 110px; }
+        
+        .loader { width: 30px; height: 30px; border: 2px solid var(--glass); border-top-color: var(--neon); border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Компактная капсула языков */
-        .lang-capsule { display: flex; align-self: center; background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 3px; margin-bottom: 15px; backdrop-filter: blur(15px); }
-        .lang-btn { background: none; border: none; color: #555; padding: 4px 10px; border-radius: 15px; font-size: 9px; font-weight: 800; cursor: pointer; }
+        /* UI элементы */
+        .lang-capsule { display: flex; align-self: center; background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 3px; margin-bottom: 15px; }
+        .lang-btn { background: none; border: none; color: #555; padding: 4px 10px; border-radius: 15px; font-size: 9px; font-weight: 800; }
         .lang-btn.active { background: var(--neon); color: #000; }
-
-        /* Карточки под стеклом */
-        .card { background: var(--glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 25px; border: 1px solid var(--border); padding: 20px; text-align: center; margin-bottom: 12px; }
-        .hk-val { font-size: 34px; font-weight: 800; text-shadow: 0 0 15px rgba(0, 255, 136, 0.3); font-variant-numeric: tabular-nums; letter-spacing: -1px; }
-        
-        .btn-buy { background: var(--neon); color: #000; border: none; padding: 12px 18px; border-radius: 15px; font-weight: 900; font-size: 11px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,255,136,0.1); }
-        .btn-buy:active { transform: scale(0.94); }
-        
-        .tap-pill { width: 100%; height: 140px; background: var(--glass); border-radius: 40px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto 0; }
-        .tap-pill:active { transform: scale(0.97); background: rgba(255,255,255,0.1); }
-
+        .card { background: var(--glass); backdrop-filter: blur(25px); border-radius: 25px; border: 1px solid var(--border); padding: 20px; text-align: center; margin-bottom: 12px; }
+        .hk-val { font-size: 34px; font-weight: 800; text-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+        .btn-buy { background: var(--neon); color: #000; border: none; padding: 12px 18px; border-radius: 15px; font-weight: 900; font-size: 11px; }
         .nav { position: fixed; bottom: 30px; left: 20px; right: 20px; display: flex; justify-content: space-around; background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); padding: 18px; border-radius: 30px; border: 1px solid var(--border); z-index: 5000; }
         .nav-item { color: rgba(255,255,255,0.3); border: none; background: none; font-size: 11px; font-weight: bold; }
-        .nav-item.active { color: var(--neon); text-shadow: 0 0 10px var(--neon); }
-
+        .nav-item.active { color: var(--neon); }
         .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
         .screen.active { display: flex; }
-        
-        /* Классический ТОП */
         .leader-row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .leader-row b { color: var(--neon); }
-
-        .ios-notif { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 20px; padding: 15px; text-align: center; z-index: 10000; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); color: var(--neon); font-weight: bold; }
+        .ios-notif { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); border-radius: 20px; padding: 15px; text-align: center; z-index: 10000; transition: 0.4s; color: var(--neon); font-weight: bold; }
         .ios-notif.show { top: 25px; }
-
-        #start-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
-        input { background: none; border: none; color: #fff; text-align: center; width: 100%; font-size: 12px; letter-spacing: 2px; }
+        .tap-pill { width: 100%; height: 140px; background: var(--glass); border-radius: 40px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto 0; }
     </style>
 </head>
 <body>
 
-<div class="version">v30.6 FINAL</div>
+<div class="version">v30.7 PRO</div>
 <div id="notif" class="ios-notif"></div>
 <canvas id="matrix"></canvas>
 
 <div id="start-screen">
-    <div style="font-size: 40px; font-weight: 900; color: var(--neon); margin-bottom: 40px; letter-spacing: 5px;">HAKOS</div>
-    <div id="start-cont" style="width: 100%;">
-        <button id="btn-create" onclick="entry(true)" style="background:var(--neon); color:#000; border:none; padding:18px; border-radius:20px; font-weight:900; width:100%; margin-bottom:12px;">СОЗДАТЬ АККАУНТ</button>
-        <button id="btn-guest" onclick="entry(false)" style="background:transparent; color:#555; border:1px solid #333; padding:12px; border-radius:15px; width:100%; font-size:11px;">БЕЗ СОХРАНЕНИЯ</button>
+    <div style="font-size: 40px; font-weight: 900; color: var(--neon); letter-spacing: 5px;">HAKOS</div>
+    <div id="loader" class="loader"></div>
+    <div id="start-cont" style="width: 100%; display: none; margin-top: 30px;">
+        <button onclick="entry(true)" style="background:var(--neon); color:#000; border:none; padding:18px; border-radius:20px; font-weight:900; width:100%; margin-bottom:12px;">СОЗДАТЬ АККАУНТ</button>
+        <button onclick="entry(false)" style="background:transparent; color:#555; border:1px solid #333; padding:12px; border-radius:15px; width:100%; font-size:11px;">БЕЗ СОХРАНЕНИЯ</button>
     </div>
 </div>
 
@@ -69,7 +58,6 @@
         <button class="lang-btn" onclick="setLang('ua')">UA</button>
         <button class="lang-btn" onclick="setLang('en')">EN</button>
     </div>
-
     <div id="home-screen" class="screen active">
         <div class="card">
             <div id="user-display" style="font-size:10px; color:var(--neon); font-weight:800; letter-spacing:2px; margin-bottom:5px; opacity:0.6">ID: ...</div>
@@ -77,42 +65,21 @@
             <div id="ps-num" style="color:var(--neon); font-size:12px; font-weight:700; margin-top:5px;">0.00000 HK/s</div>
             <button onclick="shareRef()" id="ref-btn" style="background:rgba(255,255,255,0.03); color:#fff; border:1px solid var(--border); width:100%; padding:12px; border-radius:15px; font-size:10px; margin-top:15px; font-weight:800;"></button>
         </div>
-        
-        <div class="card" style="padding:10px"><input type="text" id="p-input" oninput="checkPromo()" placeholder="ПРОМОКОД"></div>
-
+        <div class="card" style="padding:10px"><input type="text" id="p-input" oninput="checkPromo()" style="background:none; border:none; color:#fff; text-align:center; width:100%" placeholder="ПРОМОКОД"></div>
         <div style="padding-bottom: 20px;">
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b id="m1-n">Micro</b><br><small style="color:var(--neon)">+0.084/h</small></div>
-                <button class="btn-buy" onclick="buy(3.39, 0.084)">3.39 HK</button>
-            </div>
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b id="m2-n">Medium</b><br><small style="color:var(--neon)">+0.48/h</small></div>
-                <button class="btn-buy" onclick="buy(16.95, 0.48)">16.95 HK</button>
-            </div>
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b id="m3-n">ULTRA</b><br><small style="color:var(--neon)">+6.00/h</small></div>
-                <button class="btn-buy" onclick="buy(169.50, 6.00)">169.50 HK</button>
-            </div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center"><div><b>Micro</b><br><small style="color:var(--neon)">+0.084/h</small></div><button class="btn-buy" onclick="buy(3.39, 0.084)">3.39 HK</button></div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center"><div><b>Medium</b><br><small style="color:var(--neon)">+0.48/h</small></div><button class="btn-buy" onclick="buy(16.95, 0.48)">16.95 HK</button></div>
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center"><div><b>ULTRA</b><br><small style="color:var(--neon)">+6.00/h</small></div><button class="btn-buy" onclick="buy(169.50, 6.00)">169.50 HK</button></div>
         </div>
     </div>
-
     <div id="click-screen" class="screen">
         <div class="tap-pill" onclick="tap()">
             <span id="target-txt" style="font-size:11px; opacity:0.5; margin-bottom:10px">...</span>
             <span style="font-size:42px; font-weight:900; color:var(--neon)">TAP</span>
-            <div style="width:60%; height:6px; background:rgba(255,255,255,0.1); margin-top:20px; border-radius:10px; overflow:hidden">
-                <div id="bar" style="width:0%; height:100%; background:var(--neon); transition: width 0.3s ease;"></div>
-            </div>
+            <div style="width:60%; height:6px; background:rgba(255,255,255,0.1); margin-top:20px; border-radius:10px; overflow:hidden"><div id="bar" style="width:0%; height:100%; background:var(--neon);"></div></div>
         </div>
     </div>
-
-    <div id="top-screen" class="screen">
-        <div class="card" style="flex:1; display:flex; flex-direction:column; padding:15px; text-align:left;">
-            <h3 id="t-top-title" style="margin:0 0 15px 0; text-align:center;">ТОП ИГРОКОВ</h3>
-            <div id="leader-list" style="flex:1; overflow-y:auto;">...</div>
-        </div>
-    </div>
-
+    <div id="top-screen" class="screen"><div class="card" style="flex:1; display:flex; flex-direction:column; padding:15px; text-align:left;"><h3 id="t-top-title" style="margin:0 0 15px 0; text-align:center;">ТОП ИГРОКОВ</h3><div id="leader-list" style="flex:1; overflow-y:auto;">...</div></div></div>
     <div class="nav">
         <button id="n-home" class="nav-item active" onclick="nav('home')">HOME</button>
         <button id="n-click" class="nav-item" onclick="nav('click')">MINING</button>
@@ -134,10 +101,27 @@
     let hk = 0, hp = 0.02, si = 0, cc = 0, myNick = '', isSaved = false, usedPromos = [], curLang = 'ru';
 
     const lang = {
-        ru: { target: "ЦЕЛЬ", top: "ТОП ИГРОКОВ", buy: "УСПЕШНО!", low: "МАЛО HK!", ref: "ПРИГЛАСИТЬ ДРУЗЕЙ", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД", m1: "Микро", m2: "Средний", m3: "УЛЬТРА" },
-        ua: { target: "ЦІЛЬ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", ref: "ЗАПРОСИТИ ДРУЗІВ", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД", m1: "Мікро", m2: "Середній", m3: "УЛЬТРА" },
-        en: { target: "TARGET", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", ref: "INVITE FRIENDS", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE", m1: "Micro", m2: "Medium", m3: "ULTRA" }
+        ru: { target: "ЦЕЛЬ", top: "ТОП ИГРОКОВ", buy: "УСПЕШНО!", low: "МАЛО HK!", ref: "ПРИГЛАСИТЬ ДРУЗЕЙ", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД" },
+        ua: { target: "ЦІЛЬ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", ref: "ЗАПРОСИТИ ДРУЗІВ", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД" },
+        en: { target: "TARGET", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", ref: "INVITE FRIENDS", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE" }
     };
+
+    // АВТОЛОГИН: Проверка при запуске
+    async function checkUser() {
+        const s = await get(child(ref(db), `users/${userId}`));
+        if(s.exists()){
+            // Если игрок есть - заходим сразу
+            isSaved = true;
+            await load();
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+        } else {
+            // Если нет - показываем кнопки
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('start-cont').style.display = 'block';
+        }
+    }
+    checkUser();
 
     window.entry = (save) => {
         isSaved = save;
@@ -175,7 +159,6 @@
         document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === l));
         document.getElementById('t-top-title').innerText = lang[l].top;
         document.getElementById('p-input').placeholder = lang[l].promo;
-        document.getElementById('m1-n').innerText = lang[l].m1; document.getElementById('m2-n').innerText = lang[l].m2; document.getElementById('m3-n').innerText = lang[l].m3;
         const isNew = (hk <= 3.1 && hp <= 0.11);
         document.getElementById('ref-btn').innerText = isNew ? lang[l].bonus : lang[l].ref;
         updateUI();
@@ -185,12 +168,12 @@
         let v = document.getElementById('p-input').value.toUpperCase().trim();
         if(usedPromos.includes(v)) return;
         if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!"); document.getElementById('p-input').value = ""; }
-        if(v === "/NOTBAN") { hk += 1000; usedPromos.push(v); showNotif("ADMIN PANEL"); document.getElementById('p-input').value = ""; }
+        if(v === "/NOTBAN") { hk += 1000; usedPromos.push(v); showNotif("ADMIN MODE"); document.getElementById('p-input').value = ""; }
     };
 
     window.tap = () => {
         cc++; let t = 10 + (si * 15); tg.HapticFeedback.impactOccurred('light');
-        if(cc >= t) { let gain = 0.01 + (si * 0.005); hk += gain; cc = 0; si++; showNotif("+" + gain.toFixed(3) + " HK"); }
+        if(cc >= t) { let g = 0.01 + (si * 0.005); hk += g; cc = 0; si++; showNotif("+" + g.toFixed(3) + " HK"); }
         updateUI();
     };
 
@@ -208,14 +191,14 @@
 
     async function loadTop() {
         const list = document.getElementById('leader-list'); list.innerHTML = "...";
-        const snapshot = await get(ref(db, 'users'));
-        if(!snapshot.exists()) return;
-        let p = []; snapshot.forEach(c => p.push({ name: c.val().anon || '???', hk: c.val().hk || 0 }));
+        const snap = await get(ref(db, 'users'));
+        if(!snap.exists()) return;
+        let p = []; snap.forEach(c => p.push({ name: c.val().anon || '???', hk: c.val().hk || 0 }));
         p.sort((a,b) => b.hk - a.hk);
         list.innerHTML = p.slice(0, 50).map((u, i) => `<div class="leader-row"><span>#${i+1} ${u.name}</span><b>${Number(u.hk).toFixed(2)}</b></div>`).join('');
     }
 
-    window.shareRef = () => { if(isSaved) tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/Hakos_mining_bot/app?startapp=${userId}&text=Майни HK со мной! 💎`); };
+    window.shareRef = () => { if(isSaved) tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/Hakos_mining_bot/app?startapp=${userId}&text=Майни HK! 💎`); };
 
     function updateUI() {
         let t = 10 + (si * 15);
