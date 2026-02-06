@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HKos Pro v26.7</title>
+    <title>HKos Pro v27.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000; --neon: #00ff88; --glass: rgba(255, 255, 255, 0.08); --border: rgba(255, 255, 255, 0.1); }
@@ -11,11 +11,15 @@
         body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; height: 100vh; }
         
         canvas { position: fixed; top: 0; left: 0; z-index: 1; opacity: 0.1; pointer-events: none; }
-        .app { position: relative; z-index: 10; display: flex; flex-direction: column; height: 100vh; padding: 20px 20px 110px; }
+        .app { position: relative; z-index: 10; display: flex; flex-direction: column; height: 100vh; padding: 10px 20px 110px; }
+
+        .lang-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .lang-btn { background: var(--glass); border: 1px solid var(--border); color: #fff; padding: 5px 10px; border-radius: 10px; font-size: 10px; cursor: pointer; }
+        .lang-btn.active { border-color: var(--neon); color: var(--neon); }
 
         .ios-notif { 
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%); 
-            width: 80%; background: rgba(20,20,20,0.95); backdrop-filter: blur(20px); 
+            width: 85%; background: rgba(20,20,20,0.95); backdrop-filter: blur(20px); 
             border: 1px solid var(--border); border-radius: 20px; padding: 15px; 
             text-align: center; z-index: 10000; transition: 0.4s;
         }
@@ -28,29 +32,13 @@
         }
 
         .user-nick { font-size: 10px; color: var(--neon); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px; opacity: 0.8; }
-        .hk-val { 
-            font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; 
-            text-shadow: 0 0 15px rgba(0, 255, 136, 0.3); /* Мягкое свечение */
-        }
+        .hk-val { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
         
-        .btn-buy { 
-            background: var(--neon); color: #000; border: none; 
-            padding: 12px 18px; border-radius: 15px; font-weight: 900; 
-            font-size: 12px; cursor: pointer;
-        }
+        .btn-buy { background: var(--neon); color: #000; border: none; padding: 12px 18px; border-radius: 15px; font-weight: 900; font-size: 12px; cursor: pointer; }
 
-        .tap-pill { 
-            width: 100%; height: 120px; background: var(--glass); 
-            border-radius: 35px; border: 1px solid var(--border);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .tap-pill { width: 100%; height: 120px; background: var(--glass); border-radius: 35px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-        .nav { 
-            position: fixed; bottom: 30px; left: 20px; right: 20px; 
-            display: flex; justify-content: space-around; 
-            background: rgba(10,10,10,0.9); backdrop-filter: blur(20px);
-            padding: 18px; border-radius: 30px; border: 1px solid var(--border); z-index: 5000;
-        }
+        .nav { position: fixed; bottom: 30px; left: 20px; right: 20px; display: flex; justify-content: space-around; background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); padding: 18px; border-radius: 30px; border: 1px solid var(--border); z-index: 5000; }
         .nav-item { color: rgba(255,255,255,0.3); border: none; background: none; font-size: 11px; font-weight: bold; }
         .nav-item.active { color: var(--neon); }
 
@@ -67,17 +55,23 @@
 </head>
 <body>
 
-<div id="notif" class="ios-notif">💎 Готово!</div>
+<div id="notif" class="ios-notif">💎</div>
 <canvas id="matrix"></canvas>
 
 <div class="app">
+    <div class="lang-bar">
+        <div class="lang-btn active" onclick="setLang('ru')">RU</div>
+        <div class="lang-btn" onclick="setLang('ua')">UA</div>
+        <div class="lang-btn" onclick="setLang('en')">EN</div>
+    </div>
+
     <div id="home-screen" class="screen active">
-        <div class="card" style="margin-top:20px">
-            <div id="user-display" class="user-nick">ПОДКЛЮЧЕНИЕ...</div>
+        <div class="card">
+            <div id="user-display" class="user-nick">...</div>
             <div id="hk-num" class="hk-val">0.00000000</div>
-            <div id="ps-num" style="color:var(--neon); font-size:12px; font-weight:700; opacity: 0.9;">0.00000 HK/s</div>
+            <div id="ps-num" style="color:var(--neon); font-size:12px; font-weight:700">0.00000 HK/s</div>
         </div>
-        <div class="card" style="padding:10px"><input type="text" id="p-input" oninput="checkPromo()" placeholder="ПРОМОКОД"></div>
+        <div class="card" style="padding:10px"><input type="text" id="p-input" oninput="checkPromo()" placeholder="..."></div>
         <div style="overflow-y:auto; flex:1">
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
                 <div style="text-align:left"><b>Micro</b><br><small style="color:var(--neon)">+0.07/h</small></div>
@@ -96,7 +90,7 @@
 
     <div id="click-screen" class="screen">
         <div class="tap-pill" onclick="tap()" style="margin: auto 0;">
-            <span id="target-txt" style="font-size:11px; opacity:0.5; margin-bottom:10px">ЦЕЛЬ: 0 / 10</span>
+            <span id="target-txt" style="font-size:11px; opacity:0.5; margin-bottom:10px">...</span>
             <span style="font-size:42px; font-weight:900; color:var(--neon)">TAP</span>
             <div style="width:60%; height:6px; background:rgba(255,255,255,0.1); margin-top:20px; border-radius:10px; overflow:hidden">
                 <div id="bar" style="width:0%; height:100%; background:var(--neon)"></div>
@@ -105,10 +99,10 @@
     </div>
 
     <div id="top-screen" class="screen">
-        <div class="card" style="flex:1; margin-top:20px; display: flex; flex-direction: column; overflow: hidden;">
-            <h3 style="margin-top:0">TOP PLAYERS</h3>
-            <div id="leader-list" style="flex:1; overflow-y:auto; text-align: left;">Загрузка...</div>
-            <button id="find-me-btn" onclick="scrollToMe()">ГДЕ Я? (FIND ME)</button>
+        <div class="card" style="flex:1; display: flex; flex-direction: column; overflow: hidden;">
+            <h3 class="t-top-title" style="margin-top:0">TOP PLAYERS</h3>
+            <div id="leader-list" style="flex:1; overflow-y:auto; text-align: left;">...</div>
+            <button id="find-me-btn" onclick="scrollToMe()" class="t-find-me">ГДЕ Я?</button>
         </div>
     </div>
 
@@ -121,7 +115,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+    import { getDatabase, ref, get, child, update, remove } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBD-uKyTOd3iXNkisXyCkpgeXYzG4oySHM",
@@ -133,32 +127,65 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const tg = window.Telegram.WebApp;
-    const userId = tg.initDataUnsafe?.user?.id || "user_final_stable";
+    const userId = tg.initDataUnsafe?.user?.id || "user_v27_stable";
     const myNick = "ID_" + String(userId).slice(0, 8);
 
-    let hk = 0, hp = 0.02, si = 0, cc = 0, usedPromos = [], displayHk = 0;
+    let hk = 0, hp = 0.02, si = 0, cc = 0, usedPromos = [], displayHk = 0, curLang = 'ru';
+
+    const langData = {
+        ru: { nick: "НИК", promo: "ПРОМОКОД", target: "ЦЕЛЬ", findme: "ГДЕ Я?", top: "ТОП ИГРОКОВ", buy: "Куплено!", low: "Мало HK!", offline: "Оффлайн доход: ", deleted: "Аккаунт удален за неактивность (1 мес)" },
+        ua: { nick: "НІК", promo: "ПРОМОКОД", target: "ЦІЛЬ", findme: "ДЕ Я?", top: "ТОП ГРАВЦІВ", buy: "Куплено!", low: "Мало HK!", offline: "Оффлайн дохід: ", deleted: "Аккаунт видалено за неактивність (1 міс)" },
+        en: { nick: "NICK", promo: "PROMOCODE", target: "TARGET", findme: "FIND ME", top: "TOP PLAYERS", buy: "Bought!", low: "Need HK!", offline: "Offline income: ", deleted: "Account deleted due to inactivity (1 mo)" }
+    };
+
+    window.setLang = (l) => {
+        curLang = l;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        if(event) event.target.classList.add('active');
+        document.getElementById('p-input').placeholder = langData[l].promo;
+        document.querySelector('.t-top-title').innerText = langData[l].top;
+        document.querySelector('.t-find-me').innerText = langData[l].findme;
+        updateUI();
+    };
 
     async function load() {
-        document.getElementById('user-display').innerText = "НИК: " + myNick;
         const s = await get(child(ref(db), `users/${userId}`));
         if(s.exists()){
             const d = s.val();
-            hk = Number(d.hk) || 0; hp = Number(d.hp) || 0.02;
-            si = d.si || 0; cc = d.cc || 0;
-            usedPromos = d.usedPromos || [];
+            let now = Date.now();
+            
+            // ПРОВЕРКА НА УДАЛЕНИЕ (1 МЕСЯЦ НЕАКТИВА)
+            if(d.lv && (now - d.lv) > (30 * 24 * 3600 * 1000)) {
+                await remove(ref(db, `users/${userId}`));
+                showNotif(langData[curLang].deleted);
+                // Сброс локальных данных
+                hk = 0; hp = 0.02; si = 0; cc = 0; usedPromos = [];
+            } else {
+                hk = Number(d.hk) || 0; hp = Number(d.hp) || 0.02;
+                si = d.si || 0; cc = d.cc || 0;
+                usedPromos = d.usedPromos || [];
+                
+                // ОФФЛАЙН ДОХОД (3 часа)
+                if(d.lv) {
+                    let diff = (now - d.lv) / 1000;
+                    let earnedSec = Math.min(diff, 3 * 3600);
+                    let income = (hp / 3600) * earnedSec;
+                    if(income > 0.0001) {
+                        hk += income;
+                        showNotif(langData[curLang].offline + "+" + income.toFixed(4));
+                    }
+                }
+            }
             displayHk = hk;
         }
-        
-        // Плавное обновление цифр и майнинг
         setInterval(() => {
-            hk += (hp / 3600) / 30; 
-            displayHk += (hk - displayHk) * 0.12; // Плавное "дополнение"
+            hk += (hp / 3600) / 30;
+            displayHk += (hk - displayHk) * 0.12;
             document.getElementById('hk-num').innerText = displayHk.toFixed(8);
             document.getElementById('ps-num').innerText = (hp/3600).toFixed(5) + " HK/s";
         }, 33);
-
         setInterval(save, 8000);
-        updateUI();
+        setLang('ru');
     }
 
     window.tap = () => {
@@ -176,9 +203,9 @@
     window.buy = (cost, prod) => {
         if(hk >= cost) {
             hk -= cost; hp += prod;
-            showNotif("Куплено!");
+            showNotif(langData[curLang].buy);
             updateUI(); save();
-        } else showNotif("Мало HK!");
+        } else showNotif(langData[curLang].low);
     };
 
     window.checkPromo = () => {
@@ -206,7 +233,7 @@
 
     async function loadTop() {
         const list = document.getElementById('leader-list');
-        list.innerHTML = "Загрузка...";
+        list.innerHTML = "...";
         try {
             const snapshot = await get(ref(db, 'users'));
             if(!snapshot.exists()) return;
@@ -225,7 +252,7 @@
                 </div>`;
             });
             document.getElementById('find-me-btn').style.display = 'block';
-        } catch(e) { list.innerHTML = "Ошибка"; }
+        } catch(e) { list.innerHTML = "Err"; }
     }
 
     window.scrollToMe = () => {
@@ -235,14 +262,15 @@
 
     function updateUI() {
         let target = 10 + (si * 15);
-        document.getElementById('target-txt').innerText = `ЦЕЛЬ: ${cc} / ${target}`;
+        document.getElementById('user-display').innerText = langData[curLang].nick + ": " + myNick;
+        document.getElementById('target-txt').innerText = langData[curLang].target + `: ${cc} / ${target}`;
         document.getElementById('bar').style.width = (cc/target*100) + "%";
     }
 
     function showNotif(txt) {
         const n = document.getElementById('notif');
         n.innerText = txt; n.classList.add('show');
-        setTimeout(() => n.classList.remove('show'), 2000);
+        setTimeout(() => n.classList.remove('show'), 3000);
     }
 
     function save() {
@@ -266,4 +294,4 @@
     }, 120);
 </script>
 </body>
-    </html>
+</html>
