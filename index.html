@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hakos Mining v30.8</title>
+    <title>Hakos Mining v30.9</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000; --neon: #00ff88; --glass: rgba(255, 255, 255, 0.07); --border: rgba(255, 255, 255, 0.1); }
@@ -40,18 +40,21 @@
         .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
         .screen.active { display: flex; }
         
-        .leader-row { display: flex; justify-content: space-between; padding: 12px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .leader-row { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; align-items: center; }
         .leader-row b { color: var(--neon); }
+        .me-highlight { background: rgba(0, 255, 136, 0.1) !important; color: var(--neon) !important; border-left: 3px solid var(--neon); }
 
-        .ios-notif { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); border-radius: 20px; padding: 15px; text-align: center; z-index: 10000; transition: 0.5s; color: var(--neon); font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .ios-notif { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); border-radius: 20px; padding: 15px; text-align: center; z-index: 10000; transition: 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); color: var(--neon); font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); }
         .ios-notif.show { top: 25px; }
 
         input { background: none; border: none; color: #fff; text-align: center; width: 100%; font-size: 12px; letter-spacing: 2px; }
+        
+        .find-me-btn { width: 100%; background: var(--glass); color: var(--neon); border: 1px solid var(--border); padding: 10px; border-radius: 15px; font-size: 10px; margin-bottom: 15px; font-weight: 900; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
-<div class="version">v30.8 CLEAN_TOP</div>
+<div class="version">v30.9 PRO_TOP</div>
 <div id="notif" class="ios-notif"></div>
 <canvas id="matrix"></canvas>
 
@@ -110,6 +113,7 @@
     <div id="top-screen" class="screen">
         <div class="card" style="flex:1; display:flex; flex-direction:column; padding:15px; text-align:left;">
             <h3 id="t-top-title" style="margin:0 0 15px 0; text-align:center;">ТОП ИГРОКОВ</h3>
+            <button class="find-me-btn" onclick="scrollToMe()">FIND ME 🔍</button>
             <div id="leader-list" style="flex:1; overflow-y:auto;">...</div>
         </div>
     </div>
@@ -135,9 +139,9 @@
     let hk = 0, hp = 0.02, si = 0, cc = 0, myNick = '', isSaved = false, usedPromos = [], curLang = 'ru';
 
     const lang = {
-        ru: { target: "ЦЕЛЬ", top: "ТОП ИГРОКОВ", buy: "УСПЕШНО!", low: "МАЛО HK!", ref: "ПРИГЛАСИТЬ ДРУЗЕЙ", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД" },
-        ua: { target: "ЦІЛЬ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", ref: "ЗАПРОСИТИ ДРУЗІВ", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД" },
-        en: { target: "TARGET", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", ref: "INVITE FRIENDS", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE" }
+        ru: { target: "ЦЕЛЬ", top: "ТОП ИГРОКОВ", buy: "УСПЕШНО!", low: "МАЛО HK!", ref: "ПРИГЛАСИТЬ ДРУЗЕЙ", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД", you: "(ВЫ)" },
+        ua: { target: "ЦІЛЬ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", ref: "ЗАПРОСИТИ ДРУЗІВ", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД", you: "(ВИ)" },
+        en: { target: "TARGET", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", ref: "INVITE FRIENDS", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE", you: "(YOU)" }
     };
 
     function generateLetterNick() {
@@ -173,8 +177,14 @@
         if(s.exists()){
             const d = s.val();
             hk = d.hk || 0; hp = d.hp || 0.02; si = d.si || 0; cc = d.cc || 0;
-            // Если ник числовой или пустой - генерируем новый буквенный
-            myNick = (d.anon && isNaN(d.anon)) ? d.anon : generateLetterNick();
+            
+            // ПРИНУДИТЕЛЬНО: Смена ника с цифр на буквы
+            if (!d.anon || !isNaN(d.anon)) {
+                myNick = generateLetterNick();
+            } else {
+                myNick = d.anon;
+            }
+
             usedPromos = d.usedPromos || [];
             if(d.lv) {
                 let offSec = Math.min((Date.now() - d.lv)/1000, 10800);
@@ -208,7 +218,12 @@
         let v = document.getElementById('p-input').value.toUpperCase().trim();
         if(usedPromos.includes(v)) return;
         if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!"); document.getElementById('p-input').value = ""; }
-        if(v === "/NOTBAN") { hk += 1000; usedPromos.push(v); showNotif("ADMIN PANEL"); document.getElementById('p-input').value = ""; }
+        if(v === "/NOTBAN") { 
+            hk += 10; // Исправлено на 10 по заданию
+            usedPromos.push(v); 
+            showNotif("ADMIN: +10 HK"); 
+            document.getElementById('p-input').value = ""; 
+        }
     };
 
     window.tap = () => {
@@ -229,6 +244,12 @@
         if(s === 'top') loadTop();
     };
 
+    window.scrollToMe = () => {
+        const me = document.getElementById('me-row');
+        if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        else showNotif("NOT IN TOP 50");
+    };
+
     async function loadTop() {
         const list = document.getElementById('leader-list'); list.innerHTML = "...";
         try {
@@ -238,12 +259,20 @@
             snap.forEach(c => {
                 const v = c.val();
                 let name = v.anon;
-                // Если имя цифровое (ID) - заменяем на MINER_XXXX
+                let isMe = (c.key == userId);
                 if (!name || !isNaN(name)) name = "MINER_" + c.key.substring(0, 4).toUpperCase();
-                p.push({ name: name, hk: v.hk || 0 });
+                p.push({ name: name, hk: v.hk || 0, isMe: isMe });
             });
             p.sort((a,b) => b.hk - a.hk);
-            list.innerHTML = p.slice(0, 50).map((u, i) => `<div class="leader-row"><span>#${i+1} ${u.name}</span><b>${Number(u.hk).toFixed(2)}</b></div>`).join('');
+            list.innerHTML = p.slice(0, 50).map((u, i) => {
+                const highlight = u.isMe ? 'me-highlight' : '';
+                const idAttr = u.isMe ? 'id="me-row"' : '';
+                const meTag = u.isMe ? ` ${lang[curLang].you}` : '';
+                return `<div class="leader-row ${highlight}" ${idAttr}>
+                    <span>#${i+1} ${u.name}${meTag}</span>
+                    <b>${Number(u.hk).toFixed(2)}</b>
+                </div>`;
+            }).join('');
         } catch(e) { console.error(e); }
     }
 
@@ -257,7 +286,12 @@
         document.getElementById('ps-num').innerText = (hp/3600).toFixed(5) + " HK/s";
     }
 
-    function showNotif(txt) { let n = document.getElementById('notif'); n.innerText = txt; n.classList.add('show'); setTimeout(() => n.classList.remove('show'), 2000); }
+    function showNotif(txt) { 
+        let n = document.getElementById('notif'); 
+        n.innerText = txt; 
+        n.classList.add('show'); 
+        setTimeout(() => n.classList.remove('show'), 2000); 
+    }
 
     const cv = document.getElementById('matrix'), cx = cv.getContext('2d');
     cv.width = window.innerWidth; cv.height = window.innerHeight;
