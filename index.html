@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hakos Mining v31.3</title>
+    <title>Hakos Mining v31.5</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000; --neon: #00ff88; --glass: rgba(255, 255, 255, 0.07); --border: rgba(255, 255, 255, 0.1); }
@@ -34,8 +34,9 @@
         
         .btn-buy { background: var(--neon); color: #000; border: none; padding: 12px 18px; border-radius: 15px; font-weight: 900; font-size: 11px; cursor: pointer; }
         .btn-buy:active { transform: scale(0.94); }
+        .btn-buy:disabled { background: #333; color: #666; cursor: not-allowed; }
         
-        .tap-pill { width: 100%; height: 160px; background: var(--glass); border-radius: 40px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto 0; position: relative; overflow: hidden; }
+        .tap-pill { width: 100%; height: 160px; background: var(--glass); border-radius: 40px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 10px 0; position: relative; overflow: hidden; }
         .tap-pill:active { transform: scale(0.97); background: rgba(0, 255, 136, 0.05); }
 
         .nav { position: fixed; bottom: 30px; left: 15px; right: 15px; display: flex; justify-content: space-around; background: rgba(10,10,10,0.85); backdrop-filter: blur(20px); padding: 15px 5px; border-radius: 25px; border: 1px solid var(--border); z-index: 5000; }
@@ -53,20 +54,17 @@
         .ios-notif.show { top: 25px; }
 
         input { background: none; border: none; color: #fff; text-align: center; width: 100%; font-size: 12px; letter-spacing: 2px; }
-        
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
         .grid-cell { height: 70px; background: var(--glass); border: 1px solid var(--border); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.1s; }
-        
         .find-me-btn { width: 100%; background: var(--glass); color: var(--neon); border: 1px solid var(--border); padding: 10px; border-radius: 15px; font-size: 10px; margin-bottom: 15px; font-weight: 900; }
         .boost-tag { font-size: 9px; background: var(--neon); color: #000; padding: 2px 6px; border-radius: 5px; margin-left: 5px; display: none; }
-        
         @keyframes shuffle { 0% { opacity: 1; } 50% { opacity: 0.3; transform: scale(0.95); } 100% { opacity: 1; } }
         .shuffling { animation: shuffle 0.4s ease-in-out; }
     </style>
 </head>
 <body>
 
-<div class="version">v31.3 ELITE</div>
+<div class="version">v31.5 AUTO_GRIND</div>
 <div id="notif" class="ios-notif"></div>
 <canvas id="matrix"></canvas>
 
@@ -116,8 +114,8 @@
 
     <div id="game-screen" class="screen">
         <div class="card">
-            <h3 id="g-title" style="margin:0">CRACK THE CODE</h3>
-            <p id="g-desc" style="font-size:10px; opacity:0.6;">Найди кристалл 💎. Карта меняется при неудаче!</p>
+            <h3 id="g-title">CRACK THE CODE</h3>
+            <p id="g-desc" style="font-size:10px; opacity:0.6;">Найди кристалл 💎. Карта меняется!</p>
             <div class="game-grid" id="game-grid">
                 <div class="grid-cell" onclick="playGame(this)">?</div>
                 <div class="grid-cell" onclick="playGame(this)">?</div>
@@ -138,6 +136,15 @@
             <div>LVL: <span id="tap-lvl" style="color:var(--neon)">1</span></div>
             <div>TOTAL: <span id="tap-total" style="color:var(--neon)">0</span></div>
         </div>
+        
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding: 15px;">
+            <div style="text-align:left">
+                <b id="at-name">AUTOTAP</b><br>
+                <small id="at-rate" style="color:var(--neon)">0.0 click/s</small>
+            </div>
+            <button id="at-btn" class="btn-buy" onclick="buyAutoTap()">59 HK</button>
+        </div>
+
         <div class="tap-pill" onclick="tap()">
             <span id="target-txt" style="font-size:11px; opacity:0.5; margin-bottom:10px">...</span>
             <span style="font-size:48px; font-weight:900; color:var(--neon); letter-spacing:2px;">TAP</span>
@@ -149,7 +156,7 @@
 
     <div id="top-screen" class="screen">
         <div class="card" style="flex:1; display:flex; flex-direction:column; padding:15px; text-align:left;">
-            <h3 id="t-top-title" style="margin:0 0 15px 0; text-align:center;">ТОП ИГРОКОВ</h3>
+            <h3 id="t-top-title" style="text-align:center;">ТОП ИГРОКОВ</h3>
             <button id="btn-find" class="find-me-btn" onclick="scrollToMe()">FIND ME 🔍</button>
             <div id="leader-list" style="flex:1; overflow-y:auto;">...</div>
         </div>
@@ -182,8 +189,10 @@
 
     let hk = 0, hp = 0.02, myNick = '', isSaved = false, isDemo = false, usedPromos = [], curLang = 'ru';
     let boostUntil = 0, dailyGames = 0, lastResetDay = 0;
-    // Новые переменные тапалки
     let tapLvl = 1, tapTotal = 0, tapProgress = 0;
+    
+    // Автотап переменные
+    let atR = 0, atP = 59;
 
     const lang = {
         ru: { 
@@ -192,7 +201,8 @@
             you: "(ВЫ)", create: "СОЗДАТЬ АККАУНТ", demo: "ДЕМО-РЕЖИМ", find: "НАЙТИ МЕНЯ 🔍",
             gTitle: "ВЗЛОМ КОДА", gDesc: "Найди кристалл 💎. Карта меняется!", 
             attempts: "ПОПЫТКИ", lvlUp: "НОВЫЙ УРОВЕНЬ! ПРИЗ: +",
-            refMsg: "БОНУС ПРИНЯТ: 10 HK + Micro-майнер + Буст x1.5 на 24 часа!"
+            refMsg: "БОНУС ПРИНЯТ: 10 HK + Micro-майнер + Буст x1.5 на 24 часа!",
+            atName: "АВТОТАП 24/7"
         },
         ua: { 
             target: "ПРОГРЕС ЦИКЛУ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", 
@@ -200,7 +210,8 @@
             you: "(ВИ)", create: "СТВОРИТИ АККАУНТ", demo: "ДЕМО-РЕЖИМ", find: "ЗНАЙТИ МЕНЕ 🔍",
             gTitle: "ЗЛАМ КОДУ", gDesc: "Знайди кристал 💎. Карта змінюється!", 
             attempts: "СПРОБИ", lvlUp: "НОВИЙ РІВЕНЬ! ПРИЗ: +",
-            refMsg: "БОНУС ПРИЙНЯТО: 10 HK + Micro-майнер + Буст x1.5 на 24 години!"
+            refMsg: "БОНУС ПРИЙНЯТО: 10 HK + Micro-майнер + Буст x1.5 на 24 години!",
+            atName: "АВТОТАП 24/7"
         },
         en: { 
             target: "CYCLE PROGRESS", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", 
@@ -208,7 +219,8 @@
             you: "(YOU)", create: "CREATE ACCOUNT", demo: "DEMO MODE", find: "FIND ME 🔍",
             gTitle: "CRACK THE CODE", gDesc: "Find 💎. Grid shuffles on miss!", 
             attempts: "ATTEMPTS", lvlUp: "LEVEL UP! PRIZE: +",
-            refMsg: "REF BONUS: 10 HK + Micro miner + x1.5 Boost for 24h!"
+            refMsg: "REF BONUS: 10 HK + Micro miner + x1.5 Boost for 24h!",
+            atName: "AUTOTAP 24/7"
         }
     };
 
@@ -239,11 +251,41 @@
                 const d = s.val();
                 hk = d.hk || 0; hp = d.hp || 0.02; 
                 tapLvl = d.tl || 1; tapTotal = d.tt || 0; tapProgress = d.tp || 0;
+                atR = d.atR || 0; atP = d.atP || 59;
                 boostUntil = d.bu || 0;
                 lastResetDay = d.lrd || today;
                 dailyGames = (lastResetDay !== today) ? 0 : (d.dg || 0);
-                myNick = (!d.anon || !isNaN(d.anon)) ? ("MINER_"+Math.random().toString(36).substring(7).toUpperCase()) : d.anon;
+                myNick = d.anon || "MINER_X";
                 usedPromos = d.usedPromos || [];
+                
+                if(d.lv) {
+                    let diffSec = (Date.now() - d.lv)/1000;
+                    
+                    // 1. Обычный оффлайн доход (3 часа лимит)
+                    let mineSec = Math.min(diffSec, 10800);
+                    let boost = (Date.now() < boostUntil) ? 1.5 : 1;
+                    let mGain = ((hp * boost)/3600) * mineSec;
+                    
+                    // 2. Автотап доход (БЕЗ ЛИМИТА)
+                    let totalAutoClicks = atR * diffSec;
+                    let earnedFromTap = 0;
+                    if(totalAutoClicks > 0) {
+                        tapTotal += totalAutoClicks;
+                        tapProgress += totalAutoClicks;
+                        // Считаем уровни
+                        while(tapProgress >= 1000) {
+                            tapLvl++;
+                            tapProgress -= 1000;
+                            earnedFromTap += (0.05 + (tapLvl * 0.01));
+                        }
+                    }
+                    
+                    let totalGain = mGain + earnedFromTap;
+                    if(totalGain > 0.00001) {
+                        hk += totalGain;
+                        setTimeout(() => showNotif(lang[curLang].off + totalGain.toFixed(5), 5000), 1500);
+                    }
+                }
             } else {
                 myNick = "MINER_"+Math.random().toString(36).substring(7).toUpperCase();
                 if(startParam) { 
@@ -256,37 +298,75 @@
     }
 
     function runGame() {
+        // Главный цикл: 10 раз в секунду
         setInterval(() => { 
             let boost = (Date.now() < boostUntil) ? 1.5 : 1;
+            // Доход от майнеров
             hk += ((hp * boost)/3600)/10; 
+            
+            // Работа автотапа (atR кликов в секунду, значит /10 за итерацию)
+            if(atR > 0) {
+                let step = atR / 10;
+                tapProgress += step;
+                tapTotal += step;
+                if(tapProgress >= 1000) {
+                    tapLvl++;
+                    tapProgress = 0;
+                    let prize = 0.05 + (tapLvl * 0.01);
+                    hk += prize;
+                    showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000);
+                }
+            }
+
             document.getElementById('hk-num').innerText = hk.toFixed(6); 
-            document.getElementById('boost-timer').style.display = (boost > 1) ? 'inline-block' : 'none';
+            updateUI();
         }, 100);
         
         if(isSaved && !isDemo) {
             setInterval(() => {
                 const today = new Date().getUTCDate();
                 update(ref(db, `users/${userId}`), { 
-                    hk, hp, tl: tapLvl, tt: tapTotal, tp: tapProgress, anon: myNick, usedPromos, lv: Date.now(), bu: boostUntil, dg: dailyGames, lrd: today 
+                    hk, hp, tl: tapLvl, tt: tapTotal, tp: tapProgress, atR, atP, anon: myNick, usedPromos, lv: Date.now(), bu: boostUntil, dg: dailyGames, lrd: today 
                 });
             }, 8000);
         }
         setLang('ru');
     }
 
+    window.buyAutoTap = () => {
+        if(hk >= atP) {
+            hk -= atP;
+            atR += 0.3;
+            atP = Math.floor(atP * 2.2);
+            showNotif(lang[curLang].buy, 2000);
+            updateUI();
+        } else showNotif(lang[curLang].low, 2000);
+    };
+
+    window.tap = () => {
+        tapProgress++; tapTotal++;
+        tg.HapticFeedback.impactOccurred('light');
+        if(tapProgress >= 1000) {
+            tapLvl++; tapProgress = 0;
+            let prize = 0.05 + (tapLvl * 0.01); hk += prize;
+            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000);
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+        updateUI();
+    };
+
+    // Остальные функции (playGame, buy, nav и т.д.) остаются прежними...
     let isGameLocked = false;
     window.playGame = (cell) => {
         if(isGameLocked) return;
         if(dailyGames >= 100) { showNotif("LIMIT 100/DAY", 3000); return; }
-        
         isGameLocked = true;
         const win = Math.random() < 0.11;
         dailyGames++;
-        
         if(win) {
             let p = 0.005 + (hp * 0.01); hk += p;
             cell.innerText = "💎"; cell.style.color = "#00ff88";
-            showNotif("WIN: +" + p.toFixed(4), 4000); // Увеличено время
+            showNotif("WIN: +" + p.toFixed(4), 4000);
             tg.HapticFeedback.notificationOccurred('success');
             setTimeout(resetGrid, 1500);
         } else {
@@ -295,10 +375,7 @@
             tg.HapticFeedback.impactOccurred('medium');
             setTimeout(() => {
                 document.getElementById('game-grid').classList.add('shuffling');
-                setTimeout(() => {
-                    resetGrid();
-                    document.getElementById('game-grid').classList.remove('shuffling');
-                }, 400);
+                setTimeout(() => { resetGrid(); document.getElementById('game-grid').classList.remove('shuffling'); }, 400);
             }, 600);
         }
         updateUI();
@@ -319,21 +396,12 @@
         document.getElementById('btn-find').innerText = lang[l].find;
         document.getElementById('g-title').innerText = lang[l].gTitle;
         document.getElementById('g-desc').innerText = lang[l].gDesc;
+        document.getElementById('at-name').innerText = lang[l].atName;
         updateUI();
     };
 
-    window.tap = () => {
-        tapProgress++; tapTotal++;
-        tg.HapticFeedback.impactOccurred('light');
-        
-        if(tapProgress >= 1000) {
-            tapLvl++; tapProgress = 0;
-            let prize = 0.05 + (tapLvl * 0.01);
-            hk += prize;
-            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000);
-            tg.HapticFeedback.notificationOccurred('success');
-        }
-        updateUI();
+    window.buy = (cost, prod) => {
+        if(hk >= cost) { hk -= cost; hp += prod; showNotif(lang[curLang].buy, 2000); updateUI(); } else showNotif(lang[curLang].low, 2000);
     };
 
     window.checkPromo = () => {
@@ -343,22 +411,12 @@
         if(v === "/NOTBAN") { hk += 10; usedPromos.push(v); showNotif("ADMIN MODE", 3000); document.getElementById('p-input').value = ""; }
     };
 
-    window.buy = (cost, prod) => {
-        if(hk >= cost) { hk -= cost; hp += prod; showNotif(lang[curLang].buy, 2000); updateUI(); } else showNotif(lang[curLang].low, 2000);
-    };
-
     window.nav = (s) => {
         document.querySelectorAll('.screen').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
         document.getElementById(s + '-screen').classList.add('active');
         document.getElementById('n-' + s).classList.add('active');
         if(s === 'top') loadTop();
-    };
-
-    window.scrollToMe = () => {
-        const me = document.getElementById('me-row');
-        if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        else showNotif("NOT IN TOP 50", 2000);
     };
 
     async function loadTop() {
@@ -380,15 +438,25 @@
         } catch(e) {}
     }
 
+    window.scrollToMe = () => {
+        const me = document.getElementById('me-row');
+        if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        else showNotif("NOT IN TOP 50", 2000);
+    };
+
     window.shareRef = () => { if(isSaved) tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/Hakos_mining_bot/app?startapp=${userId}&text=Майни, тапай HK и жди листинг! 💎`); };
 
     function updateUI() {
         document.getElementById('user-display').innerText = "ID: " + myNick;
         document.getElementById('tap-lvl').innerText = tapLvl;
-        document.getElementById('tap-total').innerText = tapTotal;
-        document.getElementById('target-txt').innerText = `${lang[curLang].target}: ${tapProgress} / 1000`;
+        document.getElementById('tap-total').innerText = Math.floor(tapTotal);
+        document.getElementById('target-txt').innerText = `${lang[curLang].target}: ${Math.floor(tapProgress)} / 1000`;
         document.getElementById('bar').style.width = (tapProgress/10) + "%";
         document.getElementById('game-count').innerText = `${lang[curLang].attempts}: ${dailyGames} / 100`;
+        
+        document.getElementById('at-rate').innerText = `${atR.toFixed(1)} click/s`;
+        document.getElementById('at-btn').innerText = `${atP} HK`;
+        
         const boost = (Date.now() < boostUntil) ? 1.5 : 1;
         document.getElementById('ps-num').innerHTML = `${((hp * boost)/3600).toFixed(5)} HK/s ${boost > 1 ? '<span class="boost-tag" style="display:inline">x1.5</span>' : ''}`;
     }
@@ -401,11 +469,18 @@
     const cv = document.getElementById('matrix'), cx = cv.getContext('2d');
     cv.width = window.innerWidth; cv.height = window.innerHeight;
     const dr = Array(25).fill(1);
+    const symbols = ["⚒", "💎", "⚙️", "HK", "0", "1"];
     setInterval(() => {
         cx.fillStyle = "rgba(0,0,0,0.15)"; cx.fillRect(0,0,cv.width,cv.height);
-        cx.fillStyle = "rgba(0,255,136,0.1)";
-        dr.forEach((y, i) => { cx.fillText("HK", i*20, y*15); if(y*15 > cv.height && Math.random() > 0.95) dr[i] = 0; dr[i]++; });
+        cx.fillStyle = "rgba(0,255,136,0.12)";
+        cx.font = "12px monospace";
+        dr.forEach((y, i) => { 
+            const s = symbols[Math.floor(Math.random()*symbols.length)];
+            cx.fillText(s, i*20, y*15); 
+            if(y*15 > cv.height && Math.random() > 0.95) dr[i] = 0; 
+            dr[i]++; 
+        });
     }, 120);
 </script>
 </body>
-</html>
+    </html>
