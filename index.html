@@ -198,7 +198,7 @@
             ref: "Пригласить друзей", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД", 
             you: "(ВЫ)", create: "СОЗДАТЬ АККАУНТ", demo: "ДЕМО-РЕЖИМ", find: "НАЙТИ МЕНЯ 🔍",
             gTitle: "ВЗЛОМ КОДА", gDesc: "Найди кристалл 💎. Карта меняется!", 
-            attempts: "ПОПЫТКИ", lvlUp: "НОВЫЙ УРОВЕНЬ! ПРИЗ: +",
+            attempts: "ПОПЫТКИ", lvlUp: "ПОПОЛНЕНИЕ: +",
             refMsg: "БОНУС ПРИНЯТ: 10 HK + Micro-майнер + Буст x1.5 на 24 часа!",
             atName: "АВТОТАП 24/7"
         },
@@ -207,7 +207,7 @@
             ref: "Запросити друзів", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД", 
             you: "(ВИ)", create: "СТВОРИТИ АККАУНТ", demo: "ДЕМО-РЕЖИМ", find: "ЗНАЙТИ МЕНЕ 🔍",
             gTitle: "ЗЛАМ КОДУ", gDesc: "Знайди кристал 💎. Карта змінюється!", 
-            attempts: "СПРОБИ", lvlUp: "НОВИЙ РІВЕНЬ! ПРИЗ: +",
+            attempts: "СПРОБИ", lvlUp: "ПОПОВНЕННЯ: +",
             refMsg: "БОНУС ПРИЙНЯТО: 10 HK + Micro-майнер + Буст x1.5 на 24 години!",
             atName: "АВТОТАП 24/7"
         },
@@ -216,7 +216,7 @@
             ref: "Invite Friends", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE", 
             you: "(YOU)", create: "CREATE ACCOUNT", demo: "DEMO MODE", find: "FIND ME 🔍",
             gTitle: "CRACK THE CODE", gDesc: "Find 💎. Grid shuffles on miss!", 
-            attempts: "ATTEMPTS", lvlUp: "LEVEL UP! PRIZE: +",
+            attempts: "ATTEMPTS", lvlUp: "DEPOSIT: +",
             refMsg: "REF BONUS: 10 HK + Micro miner + x1.5 Boost for 24h!",
             atName: "AUTOTAP 24/7"
         }
@@ -286,7 +286,12 @@
             if(atR > 0) {
                 let step = atR / 10;
                 tapProgress += step; tapTotal += step;
-                if(tapProgress >= 1000) { tapLvl++; tapProgress = 0; hk += (0.05 + (tapLvl * 0.01)); }
+                if(tapProgress >= 1000) { 
+                    tapLvl++; tapProgress = 0; 
+                    let prize = (0.05 + (tapLvl * 0.01));
+                    hk += prize;
+                    showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000); 
+                }
             }
             updateUI();
         }, 100);
@@ -309,7 +314,9 @@
         tg.HapticFeedback.impactOccurred('light');
         if(tapProgress >= 1000) {
             tapLvl++; tapProgress = 0;
-            hk += (0.05 + (tapLvl * 0.01));
+            let prize = (0.05 + (tapLvl * 0.01));
+            hk += prize;
+            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000); // УВЕДОМЛЕНИЕ О ПОПОЛНЕНИИ
             tg.HapticFeedback.notificationOccurred('success');
         }
         updateUI();
@@ -356,7 +363,6 @@
 
     window.checkPromo = () => {
         let v = document.getElementById('p-input').value.toUpperCase().trim();
-        // ВЕЧНЫЙ ПРОМОКОД (БЕЗ ИЗМЕНЕНИЯ ДИЗАЙНА)
         if(v === "/ADMINTAP") { atR += 0.3; showNotif("ADMIN: +0.3 cl/s"); document.getElementById('p-input').value = ""; updateUI(); return; }
         if(usedPromos.includes(v)) return;
         if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!"); document.getElementById('p-input').value = ""; }
@@ -417,4 +423,4 @@
     }, 120);
 </script>
 </body>
-    </html>
+        </html>
