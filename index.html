@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hakos Mining v31.5</title>
+    <title>Hakos Mining v40.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000; --neon: #00ff88; --glass: rgba(255, 255, 255, 0.07); --border: rgba(255, 255, 255, 0.1); }
@@ -64,7 +64,7 @@
 </head>
 <body>
 
-<div class="version">v31.5 AUTO_GRIND</div>
+<div class="version">v40.0 HARDCORE</div>
 <div id="notif" class="ios-notif"></div>
 <canvas id="matrix"></canvas>
 
@@ -98,16 +98,16 @@
 
         <div style="padding-bottom: 20px;">
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b id="m1-name">Micro</b><br><small style="color:var(--neon)">+0.084/h</small></div>
-                <button class="btn-buy" onclick="buy(3.39, 0.084)">3.39 HK</button>
+                <div style="text-align:left"><b id="m1-name">Micro</b><br><small style="color:var(--neon)">+0.071/h</small></div>
+                <button class="btn-buy" onclick="buy(3.90, 0.0714)">3.90 HK</button>
             </div>
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b id="m2-name">Medium</b><br><small style="color:var(--neon)">+0.48/h</small></div>
-                <button class="btn-buy" onclick="buy(16.95, 0.48)">16.95 HK</button>
+                <div style="text-align:left"><b id="m2-name">Medium</b><br><small style="color:var(--neon)">+0.41/h</small></div>
+                <button class="btn-buy" onclick="buy(19.49, 0.408)">19.49 HK</button>
             </div>
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b id="m3-name">ULTRA</b><br><small style="color:var(--neon)">+6.00/h</small></div>
-                <button class="btn-buy" onclick="buy(169.50, 6.00)">169.50 HK</button>
+                <div style="text-align:left"><b id="m3-name">ULTRA</b><br><small style="color:var(--neon)">+5.10/h</small></div>
+                <button class="btn-buy" onclick="buy(194.90, 5.10)">194.90 HK</button>
             </div>
         </div>
     </div>
@@ -142,7 +142,7 @@
                 <b id="at-name">AUTOTAP</b><br>
                 <small id="at-rate" style="color:var(--neon)">0.0 click/s</small>
             </div>
-            <button id="at-btn" class="btn-buy" onclick="buyAutoTap()">59 HK</button>
+            <button id="at-btn" class="btn-buy" onclick="buyAutoTap()">68 HK</button>
         </div>
 
         <div class="tap-pill" onclick="tap()">
@@ -187,10 +187,10 @@
     const userId = tg.initDataUnsafe?.user?.id || "dev_user";
     const startParam = tg.initDataUnsafe?.start_param;
 
-    let hk = 0, hp = 0.02, myNick = '', isSaved = false, isDemo = false, usedPromos = [], curLang = 'ru';
+    let hk = 0, hp = 0.017, myNick = '', isSaved = false, isDemo = false, usedPromos = [], curLang = 'ru';
     let boostUntil = 0, dailyGames = 0, lastResetDay = 0;
     let tapLvl = 1, tapTotal = 0, tapProgress = 0;
-    let atR = 0, atP = 59;
+    let atR = 0, atP = 68;
 
     const lang = {
         ru: { 
@@ -224,13 +224,21 @@
 
     async function autoLogin() {
         tg.ready(); tg.expand();
-        const safety = setTimeout(() => { document.getElementById('loader').style.display = 'none'; document.getElementById('start-cont').style.display = 'block'; }, 6000);
         try {
             const s = await get(child(ref(db), `users/${userId}`));
-            clearTimeout(safety);
-            if(s.exists()){ isSaved = true; await load(); document.getElementById('start-screen').style.display = 'none'; document.getElementById('app').style.display = 'flex'; } 
-            else { document.getElementById('loader').style.display = 'none'; document.getElementById('start-cont').style.display = 'block'; }
-        } catch (e) { clearTimeout(safety); document.getElementById('loader').style.display = 'none'; document.getElementById('start-cont').style.display = 'block'; }
+            if(s.exists()){ 
+                isSaved = true; 
+                await load(); 
+                document.getElementById('start-screen').style.display = 'none'; 
+                document.getElementById('app').style.display = 'flex'; 
+            } else { 
+                document.getElementById('loader').style.display = 'none'; 
+                document.getElementById('start-cont').style.display = 'block'; 
+            }
+        } catch (e) { 
+            document.getElementById('loader').style.display = 'none'; 
+            document.getElementById('start-cont').style.display = 'block'; 
+        }
     }
     autoLogin();
 
@@ -247,9 +255,9 @@
             const today = new Date().getUTCDate();
             if(s.exists()){
                 const d = s.val();
-                hk = d.hk || 0; hp = d.hp || 0.02; 
+                hk = d.hk || 0; hp = d.hp || 0.017; 
                 tapLvl = d.tl || 1; tapTotal = d.tt || 0; tapProgress = d.tp || 0;
-                atR = d.atR || 0; atP = d.atP || 59;
+                atR = d.atR || 0; atP = d.atP || 68;
                 boostUntil = d.bu || 0;
                 lastResetDay = d.lrd || today;
                 dailyGames = (lastResetDay !== today) ? 0 : (d.dg || 0);
@@ -273,7 +281,7 @@
                 }
             } else {
                 myNick = "MINER_"+Math.random().toString(36).substring(7).toUpperCase();
-                if(startParam) { hk = 10; hp = 0.104; boostUntil = Date.now() + 86400000; setTimeout(() => showNotif(lang[curLang].refMsg, 6000), 1000); }
+                if(startParam) { hk = 10; hp = 0.09; boostUntil = Date.now() + 86400000; setTimeout(() => showNotif(lang[curLang].refMsg, 6000), 1000); }
             }
         } catch(e) {}
         runGame();
@@ -286,11 +294,7 @@
             if(atR > 0) {
                 let step = atR / 10;
                 tapProgress += step; tapTotal += step;
-                if(tapProgress >= 1000) { 
-                    tapLvl++; tapProgress = 0; 
-                    hk += (0.05 + (tapLvl * 0.01));
-                    // Уведомление отключено для автокликера, чтобы не спамить
-                }
+                if(tapProgress >= 1000) { tapLvl++; tapProgress = 0; hk += (0.05 + (tapLvl * 0.01)); }
             }
             updateUI();
         }, 100);
@@ -315,7 +319,7 @@
             tapLvl++; tapProgress = 0;
             let prize = (0.05 + (tapLvl * 0.01));
             hk += prize;
-            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000); // Уведомление только при ручном тапе
+            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000);
             tg.HapticFeedback.notificationOccurred('success');
         }
         updateUI();
@@ -364,6 +368,15 @@
         let v = document.getElementById('p-input').value.toUpperCase().trim();
         if(v === "/ADMINTAP") { atR += 0.3; showNotif("ADMIN: +0.3 cl/s"); document.getElementById('p-input').value = ""; updateUI(); return; }
         if(v === "/SBROSTAP") { atR = 0; showNotif("RESET AUTOCLICK"); document.getElementById('p-input').value = ""; updateUI(); return; }
+        
+        // НОВЫЕ КОМАНДЫ v40.0
+        if(v === "/SBROSMINING") { hp = hp / 2; showNotif("MINING HALVED 50%"); document.getElementById('p-input').value = ""; updateUI(); return; }
+        if(v.startsWith("/MINUS")) {
+            let num = parseFloat(v.replace("/MINUS", ""));
+            if(!isNaN(num)) { hk = Math.max(0, hk - num); showNotif("-" + num + " HK"); }
+            document.getElementById('p-input').value = ""; updateUI(); return;
+        }
+
         if(usedPromos.includes(v)) return;
         if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!"); document.getElementById('p-input').value = ""; }
         if(v === "/NOTBAN") { hk += 10; usedPromos.push(v); showNotif("ADMIN MODE"); document.getElementById('p-input').value = ""; }
