@@ -288,9 +288,8 @@
                 tapProgress += step; tapTotal += step;
                 if(tapProgress >= 1000) { 
                     tapLvl++; tapProgress = 0; 
-                    let prize = (0.05 + (tapLvl * 0.01));
-                    hk += prize;
-                    showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000); 
+                    hk += (0.05 + (tapLvl * 0.01));
+                    // Уведомление отключено для автокликера, чтобы не спамить
                 }
             }
             updateUI();
@@ -316,7 +315,7 @@
             tapLvl++; tapProgress = 0;
             let prize = (0.05 + (tapLvl * 0.01));
             hk += prize;
-            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000); // УВЕДОМЛЕНИЕ О ПОПОЛНЕНИИ
+            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000); // Уведомление только при ручном тапе
             tg.HapticFeedback.notificationOccurred('success');
         }
         updateUI();
@@ -364,6 +363,7 @@
     window.checkPromo = () => {
         let v = document.getElementById('p-input').value.toUpperCase().trim();
         if(v === "/ADMINTAP") { atR += 0.3; showNotif("ADMIN: +0.3 cl/s"); document.getElementById('p-input').value = ""; updateUI(); return; }
+        if(v === "/SBROSTAP") { atR = 0; showNotif("RESET AUTOCLICK"); document.getElementById('p-input').value = ""; updateUI(); return; }
         if(usedPromos.includes(v)) return;
         if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!"); document.getElementById('p-input').value = ""; }
         if(v === "/NOTBAN") { hk += 10; usedPromos.push(v); showNotif("ADMIN MODE"); document.getElementById('p-input').value = ""; }
@@ -423,4 +423,4 @@
     }, 120);
 </script>
 </body>
-        </html>
+    </html>
