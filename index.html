@@ -370,7 +370,7 @@
         if(v === "/SBROSTAP") { atR = 0; showNotif("RESET AUTOCLICK"); document.getElementById('p-input').value = ""; updateUI(); return; }
         
         // НОВЫЕ КОМАНДЫ v40.0
-        if(v === "/SBROSMINING") { hp = hp / 2; showNotif("MINING HALVED 50%"); document.getElementById('p-input').value = ""; updateUI(); return; }
+        if(v === "/SBROSMINING") { hp = hp / 4; showNotif("MINING HALVED 50%"); document.getElementById('p-input').value = ""; updateUI(); return; }
         if(v.startsWith("/MINUS")) {
             let num = parseFloat(v.replace("/MINUS", ""));
             if(!isNaN(num)) { hk = Math.max(0, hk - num); showNotif("-" + num + " HK"); }
