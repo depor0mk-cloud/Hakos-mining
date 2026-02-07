@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hakos Mining v30.9</title>
+    <title>Hakos Mining v31.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #000; --neon: #00ff88; --glass: rgba(255, 255, 255, 0.07); --border: rgba(255, 255, 255, 0.1); }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; outline: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; height: 100vh; }
+        
+        body { 
+            margin: 0; background: var(--bg); color: #fff; 
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            overflow: hidden; height: 100vh; 
+        }
         
         canvas { position: fixed; inset: 0; z-index: 1; opacity: 0.12; pointer-events: none; }
         .version { position: fixed; bottom: 8px; right: 12px; font-size: 8px; color: rgba(255,255,255,0.1); z-index: 10001; }
         
-        #start-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+        #start-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center;}
         .app { position: relative; z-index: 10; display: none; flex-direction: column; height: 100vh; padding: 10px 20px 110px; animation: fadeIn 0.6s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -30,11 +35,11 @@
         .btn-buy { background: var(--neon); color: #000; border: none; padding: 12px 18px; border-radius: 15px; font-weight: 900; font-size: 11px; cursor: pointer; }
         .btn-buy:active { transform: scale(0.94); }
         
-        .tap-pill { width: 100%; height: 140px; background: var(--glass); border-radius: 40px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto 0; }
-        .tap-pill:active { transform: scale(0.97); }
+        .tap-pill { width: 100%; height: 160px; background: var(--glass); border-radius: 40px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto 0; position: relative; overflow: hidden; }
+        .tap-pill:active { transform: scale(0.97); background: rgba(0, 255, 136, 0.05); }
 
-        .nav { position: fixed; bottom: 30px; left: 20px; right: 20px; display: flex; justify-content: space-around; background: rgba(10,10,10,0.8); backdrop-filter: blur(20px); padding: 18px; border-radius: 30px; border: 1px solid var(--border); z-index: 5000; }
-        .nav-item { color: rgba(255,255,255,0.3); border: none; background: none; font-size: 11px; font-weight: bold; }
+        .nav { position: fixed; bottom: 30px; left: 15px; right: 15px; display: flex; justify-content: space-around; background: rgba(10,10,10,0.85); backdrop-filter: blur(20px); padding: 15px 5px; border-radius: 25px; border: 1px solid var(--border); z-index: 5000; }
+        .nav-item { color: rgba(255,255,255,0.3); border: none; background: none; font-size: 9px; font-weight: 900; letter-spacing: 0.5px; }
         .nav-item.active { color: var(--neon); }
 
         .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
@@ -42,28 +47,35 @@
         
         .leader-row { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; align-items: center; }
         .leader-row b { color: var(--neon); }
-        .me-highlight { background: rgba(0, 255, 136, 0.1) !important; color: var(--neon) !important; border-left: 3px solid var(--neon); }
+        .me-highlight { background: rgba(0, 255, 136, 0.15) !important; color: var(--neon) !important; border-left: 3px solid var(--neon); }
 
-        .ios-notif { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.95); border-radius: 20px; padding: 15px; text-align: center; z-index: 10000; transition: 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); color: var(--neon); font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); }
+        .ios-notif { position: fixed; top: -120px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(20,20,20,0.98); border-radius: 22px; padding: 18px; text-align: center; z-index: 20000; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: var(--neon); font-weight: bold; border: 1px solid var(--border); box-shadow: 0 15px 40px rgba(0,0,0,0.5); }
         .ios-notif.show { top: 25px; }
 
         input { background: none; border: none; color: #fff; text-align: center; width: 100%; font-size: 12px; letter-spacing: 2px; }
         
-        .find-me-btn { width: 100%; background: var(--glass); color: var(--neon); border: 1px solid var(--border); padding: 10px; border-radius: 15px; font-size: 10px; margin-bottom: 15px; font-weight: 900; letter-spacing: 1px; }
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .grid-cell { height: 70px; background: var(--glass); border: 1px solid var(--border); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.1s; }
+        
+        .find-me-btn { width: 100%; background: var(--glass); color: var(--neon); border: 1px solid var(--border); padding: 10px; border-radius: 15px; font-size: 10px; margin-bottom: 15px; font-weight: 900; }
+        .boost-tag { font-size: 9px; background: var(--neon); color: #000; padding: 2px 6px; border-radius: 5px; margin-left: 5px; display: none; }
+        
+        @keyframes shuffle { 0% { opacity: 1; } 50% { opacity: 0.3; transform: scale(0.95); } 100% { opacity: 1; } }
+        .shuffling { animation: shuffle 0.4s ease-in-out; }
     </style>
 </head>
 <body>
 
-<div class="version">v30.9 PRO_TOP</div>
+<div class="version">v31.3 ELITE</div>
 <div id="notif" class="ios-notif"></div>
 <canvas id="matrix"></canvas>
 
 <div id="start-screen">
     <div style="font-size: 40px; font-weight: 900; color: var(--neon); letter-spacing: 5px;">HAKOS</div>
     <div id="loader" class="loader"></div>
-    <div id="start-cont" style="width: 100%; display: none; margin-top: 30px;">
-        <button onclick="entry(true)" style="background:var(--neon); color:#000; border:none; padding:18px; border-radius:20px; font-weight:900; width:100%; margin-bottom:12px;">СОЗДАТЬ АККАУНТ</button>
-        <button onclick="entry(false)" style="background:transparent; color:#555; border:1px solid #333; padding:12px; border-radius:15px; width:100%; font-size:11px;">БЕЗ СОХРАНЕНИЯ</button>
+    <div id="start-cont" style="width: 100%; display: none; margin-top: 20px;">
+        <button id="btn-create" onclick="entry('save')" style="background:var(--neon); color:#000; border:none; padding:18px; border-radius:20px; font-weight:900; width:100%; margin-bottom:12px;">СОЗДАТЬ АККАУНТ</button>
+        <button id="btn-demo" onclick="entry('demo')" style="background:rgba(255,255,255,0.05); color:#fff; border:1px solid var(--border); padding:14px; border-radius:18px; font-weight:700; width:100%; margin-bottom:12px;">ДЕМО-РЕЖИМ</button>
     </div>
 </div>
 
@@ -78,34 +90,59 @@
         <div class="card">
             <div id="user-display" style="font-size:10px; color:var(--neon); font-weight:800; letter-spacing:2px; margin-bottom:5px; opacity:0.6">ID: ...</div>
             <div id="hk-num" class="hk-val">0.000000</div>
-            <div id="ps-num" style="color:var(--neon); font-size:12px; font-weight:700; margin-top:5px;">0.00000 HK/s</div>
-            <button onclick="shareRef()" id="ref-btn" style="background:rgba(255,255,255,0.03); color:#fff; border:1px solid var(--border); width:100%; padding:12px; border-radius:15px; font-size:10px; margin-top:15px; font-weight:800;"></button>
+            <div id="ps-num" style="color:var(--neon); font-size:12px; font-weight:700; margin-top:5px; display:flex; align-items:center; justify-content:center;">
+                0.00000 HK/s <span id="boost-timer" class="boost-tag">x1.5</span>
+            </div>
+            <button onclick="shareRef()" id="ref-btn" style="background:rgba(255,255,255,0.03); color:#fff; border:1px solid var(--border); width:100%; padding:14px; border-radius:18px; font-size:11px; margin-top:15px; font-weight:800; text-transform:uppercase;"></button>
         </div>
         
         <div class="card" style="padding:10px"><input type="text" id="p-input" oninput="checkPromo()" placeholder="ПРОМОКОД"></div>
 
         <div style="padding-bottom: 20px;">
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b>Micro</b><br><small style="color:var(--neon)">+0.084/h</small></div>
+                <div style="text-align:left"><b id="m1-name">Micro</b><br><small style="color:var(--neon)">+0.084/h</small></div>
                 <button class="btn-buy" onclick="buy(3.39, 0.084)">3.39 HK</button>
             </div>
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b>Medium</b><br><small style="color:var(--neon)">+0.48/h</small></div>
+                <div style="text-align:left"><b id="m2-name">Medium</b><br><small style="color:var(--neon)">+0.48/h</small></div>
                 <button class="btn-buy" onclick="buy(16.95, 0.48)">16.95 HK</button>
             </div>
             <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <div style="text-align:left"><b>ULTRA</b><br><small style="color:var(--neon)">+6.00/h</small></div>
+                <div style="text-align:left"><b id="m3-name">ULTRA</b><br><small style="color:var(--neon)">+6.00/h</small></div>
                 <button class="btn-buy" onclick="buy(169.50, 6.00)">169.50 HK</button>
             </div>
         </div>
     </div>
 
+    <div id="game-screen" class="screen">
+        <div class="card">
+            <h3 id="g-title" style="margin:0">CRACK THE CODE</h3>
+            <p id="g-desc" style="font-size:10px; opacity:0.6;">Найди кристалл 💎. Карта меняется при неудаче!</p>
+            <div class="game-grid" id="game-grid">
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+                <div class="grid-cell" onclick="playGame(this)">?</div>
+            </div>
+            <div id="game-count" style="margin-top:20px; font-size:11px; color:var(--neon); font-weight:bold;">ATTEMPTS: 0 / 100</div>
+        </div>
+    </div>
+
     <div id="click-screen" class="screen">
+        <div class="card" style="padding:10px; margin-bottom:10px; display:flex; justify-content:space-around; font-size:10px; font-weight:800;">
+            <div>LVL: <span id="tap-lvl" style="color:var(--neon)">1</span></div>
+            <div>TOTAL: <span id="tap-total" style="color:var(--neon)">0</span></div>
+        </div>
         <div class="tap-pill" onclick="tap()">
             <span id="target-txt" style="font-size:11px; opacity:0.5; margin-bottom:10px">...</span>
-            <span style="font-size:42px; font-weight:900; color:var(--neon)">TAP</span>
-            <div style="width:60%; height:6px; background:rgba(255,255,255,0.1); margin-top:20px; border-radius:10px; overflow:hidden">
-                <div id="bar" style="width:0%; height:100%; background:var(--neon);"></div>
+            <span style="font-size:48px; font-weight:900; color:var(--neon); letter-spacing:2px;">TAP</span>
+            <div style="width:70%; height:8px; background:rgba(255,255,255,0.05); margin-top:25px; border-radius:10px; overflow:hidden; border:1px solid var(--border);">
+                <div id="bar" style="width:0%; height:100%; background:var(--neon); box-shadow: 0 0 10px var(--neon);"></div>
             </div>
         </div>
     </div>
@@ -113,13 +150,14 @@
     <div id="top-screen" class="screen">
         <div class="card" style="flex:1; display:flex; flex-direction:column; padding:15px; text-align:left;">
             <h3 id="t-top-title" style="margin:0 0 15px 0; text-align:center;">ТОП ИГРОКОВ</h3>
-            <button class="find-me-btn" onclick="scrollToMe()">FIND ME 🔍</button>
+            <button id="btn-find" class="find-me-btn" onclick="scrollToMe()">FIND ME 🔍</button>
             <div id="leader-list" style="flex:1; overflow-y:auto;">...</div>
         </div>
     </div>
 
     <div class="nav">
         <button id="n-home" class="nav-item active" onclick="nav('home')">HOME</button>
+        <button id="n-game" class="nav-item" onclick="nav('game')">GAMES</button>
         <button id="n-click" class="nav-item" onclick="nav('click')">MINING</button>
         <button id="n-top" class="nav-item" onclick="nav('top')">TOP</button>
     </div>
@@ -129,111 +167,184 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyBD-uKyTOd3iXNkisXyCkpgeXYzG4oySHM", authDomain: "hkos-project.firebaseapp.com", projectId: "hkos-project", databaseURL: "https://hkos-project-default-rtdb.europe-west1.firebasedatabase.app" };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const firebaseConfig = { 
+        apiKey: "AIzaSyBD-uKyTOd3iXNkisXyCkpgeXYzG4oySHM", 
+        authDomain: "hkos-project.firebaseapp.com", 
+        projectId: "hkos-project", 
+        databaseURL: "https://hkos-project-default-rtdb.europe-west1.firebasedatabase.app" 
+    };
+
+    const fbApp = initializeApp(firebaseConfig);
+    const db = getDatabase(fbApp);
     const tg = window.Telegram.WebApp;
     const userId = tg.initDataUnsafe?.user?.id || "dev_user";
     const startParam = tg.initDataUnsafe?.start_param;
 
-    let hk = 0, hp = 0.02, si = 0, cc = 0, myNick = '', isSaved = false, usedPromos = [], curLang = 'ru';
+    let hk = 0, hp = 0.02, myNick = '', isSaved = false, isDemo = false, usedPromos = [], curLang = 'ru';
+    let boostUntil = 0, dailyGames = 0, lastResetDay = 0;
+    // Новые переменные тапалки
+    let tapLvl = 1, tapTotal = 0, tapProgress = 0;
 
     const lang = {
-        ru: { target: "ЦЕЛЬ", top: "ТОП ИГРОКОВ", buy: "УСПЕШНО!", low: "МАЛО HK!", ref: "ПРИГЛАСИТЬ ДРУЗЕЙ", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД", you: "(ВЫ)" },
-        ua: { target: "ЦІЛЬ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", ref: "ЗАПРОСИТИ ДРУЗІВ", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД", you: "(ВИ)" },
-        en: { target: "TARGET", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", ref: "INVITE FRIENDS", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE", you: "(YOU)" }
+        ru: { 
+            target: "ПРОГРЕСС ЦИКЛА", top: "ТОП ИГРОКОВ", buy: "УСПЕШНО!", low: "МАЛО HK!", 
+            ref: "Пригласить друзей", bonus: "ЗАБРАТЬ БОНУС", off: "ОФФЛАЙН: +", promo: "ПРОМОКОД", 
+            you: "(ВЫ)", create: "СОЗДАТЬ АККАУНТ", demo: "ДЕМО-РЕЖИМ", find: "НАЙТИ МЕНЯ 🔍",
+            gTitle: "ВЗЛОМ КОДА", gDesc: "Найди кристалл 💎. Карта меняется!", 
+            attempts: "ПОПЫТКИ", lvlUp: "НОВЫЙ УРОВЕНЬ! ПРИЗ: +",
+            refMsg: "БОНУС ПРИНЯТ: 10 HK + Micro-майнер + Буст x1.5 на 24 часа!"
+        },
+        ua: { 
+            target: "ПРОГРЕС ЦИКЛУ", top: "ТОП ГРАВЦІВ", buy: "УСПІШНО!", low: "МАЛО HK!", 
+            ref: "Запросити друзів", bonus: "ЗАБРАТИ БОНУС", off: "ОФЛАЙН: +", promo: "ПРОМОКОД", 
+            you: "(ВИ)", create: "СТВОРИТИ АККАУНТ", demo: "ДЕМО-РЕЖИМ", find: "ЗНАЙТИ МЕНЕ 🔍",
+            gTitle: "ЗЛАМ КОДУ", gDesc: "Знайди кристал 💎. Карта змінюється!", 
+            attempts: "СПРОБИ", lvlUp: "НОВИЙ РІВЕНЬ! ПРИЗ: +",
+            refMsg: "БОНУС ПРИЙНЯТО: 10 HK + Micro-майнер + Буст x1.5 на 24 години!"
+        },
+        en: { 
+            target: "CYCLE PROGRESS", top: "TOP PLAYERS", buy: "SUCCESS!", low: "NEED HK!", 
+            ref: "Invite Friends", bonus: "GET BONUS", off: "OFFLINE: +", promo: "PROMOCODE", 
+            you: "(YOU)", create: "CREATE ACCOUNT", demo: "DEMO MODE", find: "FIND ME 🔍",
+            gTitle: "CRACK THE CODE", gDesc: "Find 💎. Grid shuffles on miss!", 
+            attempts: "ATTEMPTS", lvlUp: "LEVEL UP! PRIZE: +",
+            refMsg: "REF BONUS: 10 HK + Micro miner + x1.5 Boost for 24h!"
+        }
     };
 
-    function generateLetterNick() {
-        const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        let res = "";
-        for (let i = 0; i < 6; i++) res += abc.charAt(Math.floor(Math.random() * abc.length));
-        return "USER_" + res;
-    }
-
     async function autoLogin() {
-        const s = await get(child(ref(db), `users/${userId}`));
-        if(s.exists()){
-            isSaved = true;
-            await load();
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-        } else {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('start-cont').style.display = 'block';
-        }
+        tg.ready(); tg.expand();
+        const safety = setTimeout(() => { document.getElementById('loader').style.display = 'none'; document.getElementById('start-cont').style.display = 'block'; }, 6000);
+        try {
+            const s = await get(child(ref(db), `users/${userId}`));
+            clearTimeout(safety);
+            if(s.exists()){ isSaved = true; await load(); document.getElementById('start-screen').style.display = 'none'; document.getElementById('app').style.display = 'flex'; } 
+            else { document.getElementById('loader').style.display = 'none'; document.getElementById('start-cont').style.display = 'block'; }
+        } catch (e) { clearTimeout(safety); document.getElementById('loader').style.display = 'none'; document.getElementById('start-cont').style.display = 'block'; }
     }
     autoLogin();
 
-    window.entry = (save) => {
-        isSaved = save;
-        if(save) load(); else { myNick = "GUEST"; runGame(); }
+    window.entry = (mode) => {
+        if(mode === 'save') { isSaved = true; load(); } 
+        else { isDemo = true; isSaved = false; myNick = "GUEST_" + Math.floor(Math.random()*999); runGame(); }
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
     };
 
     async function load() {
-        const s = await get(child(ref(db), `users/${userId}`));
-        if(s.exists()){
-            const d = s.val();
-            hk = d.hk || 0; hp = d.hp || 0.02; si = d.si || 0; cc = d.cc || 0;
-            
-            // ПРИНУДИТЕЛЬНО: Смена ника с цифр на буквы
-            if (!d.anon || !isNaN(d.anon)) {
-                myNick = generateLetterNick();
+        try {
+            const s = await get(child(ref(db), `users/${userId}`));
+            const today = new Date().getUTCDate();
+            if(s.exists()){
+                const d = s.val();
+                hk = d.hk || 0; hp = d.hp || 0.02; 
+                tapLvl = d.tl || 1; tapTotal = d.tt || 0; tapProgress = d.tp || 0;
+                boostUntil = d.bu || 0;
+                lastResetDay = d.lrd || today;
+                dailyGames = (lastResetDay !== today) ? 0 : (d.dg || 0);
+                myNick = (!d.anon || !isNaN(d.anon)) ? ("MINER_"+Math.random().toString(36).substring(7).toUpperCase()) : d.anon;
+                usedPromos = d.usedPromos || [];
             } else {
-                myNick = d.anon;
+                myNick = "MINER_"+Math.random().toString(36).substring(7).toUpperCase();
+                if(startParam) { 
+                    hk = 10; hp = 0.104; boostUntil = Date.now() + 86400000; 
+                    setTimeout(() => showNotif(lang[curLang].refMsg, 6000), 1000);
+                }
             }
-
-            usedPromos = d.usedPromos || [];
-            if(d.lv) {
-                let offSec = Math.min((Date.now() - d.lv)/1000, 10800);
-                let gain = (hp/3600)*offSec;
-                if(gain > 0.0001) { hk += gain; showNotif(lang[curLang].off + gain.toFixed(4)); }
-            }
-        } else {
-            myNick = generateLetterNick();
-            if(startParam) { hk = 3; hp = 0.104; }
-        }
+        } catch(e) {}
         runGame();
     }
 
     function runGame() {
-        setInterval(() => { hk += (hp/3600)/10; document.getElementById('hk-num').innerText = hk.toFixed(6); }, 100);
-        if(isSaved) setInterval(() => update(ref(db, `users/${userId}`), { hk, hp, si, cc, anon: myNick, usedPromos, lv: Date.now() }), 8000);
+        setInterval(() => { 
+            let boost = (Date.now() < boostUntil) ? 1.5 : 1;
+            hk += ((hp * boost)/3600)/10; 
+            document.getElementById('hk-num').innerText = hk.toFixed(6); 
+            document.getElementById('boost-timer').style.display = (boost > 1) ? 'inline-block' : 'none';
+        }, 100);
+        
+        if(isSaved && !isDemo) {
+            setInterval(() => {
+                const today = new Date().getUTCDate();
+                update(ref(db, `users/${userId}`), { 
+                    hk, hp, tl: tapLvl, tt: tapTotal, tp: tapProgress, anon: myNick, usedPromos, lv: Date.now(), bu: boostUntil, dg: dailyGames, lrd: today 
+                });
+            }, 8000);
+        }
         setLang('ru');
+    }
+
+    let isGameLocked = false;
+    window.playGame = (cell) => {
+        if(isGameLocked) return;
+        if(dailyGames >= 100) { showNotif("LIMIT 100/DAY", 3000); return; }
+        
+        isGameLocked = true;
+        const win = Math.random() < 0.11;
+        dailyGames++;
+        
+        if(win) {
+            let p = 0.005 + (hp * 0.01); hk += p;
+            cell.innerText = "💎"; cell.style.color = "#00ff88";
+            showNotif("WIN: +" + p.toFixed(4), 4000); // Увеличено время
+            tg.HapticFeedback.notificationOccurred('success');
+            setTimeout(resetGrid, 1500);
+        } else {
+            cell.innerText = "❌"; cell.style.color = "#ff4444";
+            showNotif("MISSED!", 1500);
+            tg.HapticFeedback.impactOccurred('medium');
+            setTimeout(() => {
+                document.getElementById('game-grid').classList.add('shuffling');
+                setTimeout(() => {
+                    resetGrid();
+                    document.getElementById('game-grid').classList.remove('shuffling');
+                }, 400);
+            }, 600);
+        }
+        updateUI();
+    };
+
+    function resetGrid() {
+        document.querySelectorAll('.grid-cell').forEach(c => { c.innerText = "?"; c.style.color = "#fff"; });
+        isGameLocked = false;
     }
 
     window.setLang = (l) => {
         curLang = l;
         document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase() === l));
+        document.getElementById('btn-create').innerText = lang[l].create;
+        document.getElementById('btn-demo').innerText = lang[l].demo;
+        document.getElementById('ref-btn').innerText = lang[l].ref;
         document.getElementById('t-top-title').innerText = lang[l].top;
-        document.getElementById('p-input').placeholder = lang[l].promo;
-        const isNew = (hk <= 3.1 && hp <= 0.11);
-        document.getElementById('ref-btn').innerText = isNew ? lang[l].bonus : lang[l].ref;
+        document.getElementById('btn-find').innerText = lang[l].find;
+        document.getElementById('g-title').innerText = lang[l].gTitle;
+        document.getElementById('g-desc').innerText = lang[l].gDesc;
+        updateUI();
+    };
+
+    window.tap = () => {
+        tapProgress++; tapTotal++;
+        tg.HapticFeedback.impactOccurred('light');
+        
+        if(tapProgress >= 1000) {
+            tapLvl++; tapProgress = 0;
+            let prize = 0.05 + (tapLvl * 0.01);
+            hk += prize;
+            showNotif(lang[curLang].lvlUp + prize.toFixed(3), 4000);
+            tg.HapticFeedback.notificationOccurred('success');
+        }
         updateUI();
     };
 
     window.checkPromo = () => {
         let v = document.getElementById('p-input').value.toUpperCase().trim();
         if(usedPromos.includes(v)) return;
-        if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!"); document.getElementById('p-input').value = ""; }
-        if(v === "/NOTBAN") { 
-            hk += 10; // Исправлено на 10 по заданию
-            usedPromos.push(v); 
-            showNotif("ADMIN: +10 HK"); 
-            document.getElementById('p-input').value = ""; 
-        }
-    };
-
-    window.tap = () => {
-        cc++; let t = 10 + (si * 15); tg.HapticFeedback.impactOccurred('light');
-        if(cc >= t) { let g = 0.01 + (si * 0.005); hk += g; cc = 0; si++; showNotif("+" + g.toFixed(3) + " HK"); }
-        updateUI();
+        if(v === "XYRO") { hk += 5; usedPromos.push(v); showNotif("+5 HK!", 3000); document.getElementById('p-input').value = ""; }
+        if(v === "/NOTBAN") { hk += 10; usedPromos.push(v); showNotif("ADMIN MODE", 3000); document.getElementById('p-input').value = ""; }
     };
 
     window.buy = (cost, prod) => {
-        if(hk >= cost) { hk -= cost; hp += prod; showNotif(lang[curLang].buy); updateUI(); } else showNotif(lang[curLang].low);
+        if(hk >= cost) { hk -= cost; hp += prod; showNotif(lang[curLang].buy, 2000); updateUI(); } else showNotif(lang[curLang].low, 2000);
     };
 
     window.nav = (s) => {
@@ -247,7 +358,7 @@
     window.scrollToMe = () => {
         const me = document.getElementById('me-row');
         if(me) me.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        else showNotif("NOT IN TOP 50");
+        else showNotif("NOT IN TOP 50", 2000);
     };
 
     async function loadTop() {
@@ -258,39 +369,33 @@
             let p = [];
             snap.forEach(c => {
                 const v = c.val();
-                let name = v.anon;
-                let isMe = (c.key == userId);
-                if (!name || !isNaN(name)) name = "MINER_" + c.key.substring(0, 4).toUpperCase();
-                p.push({ name: name, hk: v.hk || 0, isMe: isMe });
+                p.push({ name: v.anon || "USER", hk: v.hk || 0, isMe: (c.key == userId) });
             });
             p.sort((a,b) => b.hk - a.hk);
             list.innerHTML = p.slice(0, 50).map((u, i) => {
-                const highlight = u.isMe ? 'me-highlight' : '';
-                const idAttr = u.isMe ? 'id="me-row"' : '';
-                const meTag = u.isMe ? ` ${lang[curLang].you}` : '';
-                return `<div class="leader-row ${highlight}" ${idAttr}>
-                    <span>#${i+1} ${u.name}${meTag}</span>
-                    <b>${Number(u.hk).toFixed(2)}</b>
-                </div>`;
+                const h = u.isMe && !isDemo ? 'me-highlight' : '';
+                const id = u.isMe ? 'id="me-row"' : '';
+                return `<div class="leader-row ${h}" ${id}><span>#${i+1} ${u.name}${u.isMe && !isDemo ? ' '+lang[curLang].you : ''}</span><b>${Number(u.hk).toFixed(2)}</b></div>`;
             }).join('');
-        } catch(e) { console.error(e); }
+        } catch(e) {}
     }
 
-    window.shareRef = () => { if(isSaved) tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/Hakos_mining_bot/app?startapp=${userId}&text=Майни HK! 💎`); };
+    window.shareRef = () => { if(isSaved) tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/Hakos_mining_bot/app?startapp=${userId}&text=Майни, тапай HK и жди листинг! 💎`); };
 
     function updateUI() {
-        let t = 10 + (si * 15);
         document.getElementById('user-display').innerText = "ID: " + myNick;
-        document.getElementById('target-txt').innerText = `${lang[curLang].target}: ${cc} / ${t}`;
-        document.getElementById('bar').style.width = (cc/t*100) + "%";
-        document.getElementById('ps-num').innerText = (hp/3600).toFixed(5) + " HK/s";
+        document.getElementById('tap-lvl').innerText = tapLvl;
+        document.getElementById('tap-total').innerText = tapTotal;
+        document.getElementById('target-txt').innerText = `${lang[curLang].target}: ${tapProgress} / 1000`;
+        document.getElementById('bar').style.width = (tapProgress/10) + "%";
+        document.getElementById('game-count').innerText = `${lang[curLang].attempts}: ${dailyGames} / 100`;
+        const boost = (Date.now() < boostUntil) ? 1.5 : 1;
+        document.getElementById('ps-num').innerHTML = `${((hp * boost)/3600).toFixed(5)} HK/s ${boost > 1 ? '<span class="boost-tag" style="display:inline">x1.5</span>' : ''}`;
     }
 
-    function showNotif(txt) { 
-        let n = document.getElementById('notif'); 
-        n.innerText = txt; 
-        n.classList.add('show'); 
-        setTimeout(() => n.classList.remove('show'), 2000); 
+    function showNotif(txt, dur = 2000) { 
+        let n = document.getElementById('notif'); n.innerText = txt; n.classList.add('show'); 
+        setTimeout(() => n.classList.remove('show'), dur); 
     }
 
     const cv = document.getElementById('matrix'), cx = cv.getContext('2d');
